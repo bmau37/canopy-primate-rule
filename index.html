@@ -2,19 +2,23 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0b140d">
 <title>Canopy: Primate Rule - 3D Chimpanzee Survival</title>
 <style>
   :root { --panel: rgba(12,20,14,0.55); --panel-border: rgba(255,255,255,0.10); --text: #eef3e6; --muted: #b9c6ad; --accent: #9ccc65; --accent2: #f6c453; }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body, html { width: 100%; height: 100%; overflow: hidden; background: #000; font-family: "Segoe UI", system-ui, -apple-system, Roboto, Helvetica, Arial, sans-serif; color: var(--text); user-select: none; -webkit-user-select: none; }
+  body, html { width: 100%; height: 100%; overflow: hidden; position: fixed; inset: 0; touch-action: none; overscroll-behavior: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; -webkit-text-size-adjust: 100%; background: #000; font-family: "Segoe UI", system-ui, -apple-system, Roboto, Helvetica, Arial, sans-serif; color: var(--text); user-select: none; -webkit-user-select: none; }
   #canvas-container { position: absolute; inset: 0; }
   #canvas-container canvas { display: block; }
   .hidden { display: none !important; }
   kbd { display: inline-block; min-width: 1.6em; padding: 1px 6px; margin: 0 2px; border-radius: 5px; background: rgba(255,255,255,0.14); border: 1px solid rgba(255,255,255,0.28); border-bottom-width: 2px; font: 600 0.85em/1.35 ui-monospace, Menlo, Consolas, monospace; color: #fff; text-align: center; }
   #crosshair { position: absolute; top: 50%; left: 50%; width: 6px; height: 6px; margin: -3px 0 0 -3px; border-radius: 50%; background: rgba(255,255,255,0.85); box-shadow: 0 0 0 1.5px rgba(0,0,0,0.35); pointer-events: none; z-index: 10; transition: transform .15s, background .15s, box-shadow .15s; }
   #crosshair.target { background: #ffe082; transform: scale(1.8); box-shadow: 0 0 10px 2px rgba(255,214,102,0.7); }
-  #hud { position: absolute; top: 16px; left: 16px; z-index: 10; pointer-events: none; width: 262px; padding: 12px 14px 10px; border-radius: 14px; background: linear-gradient(160deg, rgba(18,30,20,0.62), rgba(8,14,10,0.45)); border: 1px solid var(--panel-border); box-shadow: 0 6px 24px rgba(0,0,0,0.25); }
+  #hud { position: absolute; top: calc(env(safe-area-inset-top) + 16px); left: calc(env(safe-area-inset-left) + 16px); z-index: 10; pointer-events: none; width: 262px; padding: 12px 14px 10px; border-radius: 14px; background: linear-gradient(160deg, rgba(18,30,20,0.62), rgba(8,14,10,0.45)); border: 1px solid var(--panel-border); box-shadow: 0 6px 24px rgba(0,0,0,0.25); }
   .stat { display: grid; grid-template-columns: 22px 1fr; gap: 8px; align-items: center; margin-bottom: 7px; }
   .stat svg { width: 20px; height: 20px; filter: drop-shadow(0 1px 1px rgba(0,0,0,0.5)); }
   .lbl { display: flex; justify-content: space-between; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin-bottom: 3px; text-shadow: 0 1px 2px #000; }
@@ -30,7 +34,7 @@
   #tier { color: #e1bee7; font-weight: 600; }
   #clock { display: flex; align-items: center; gap: 8px; margin-top: 4px; font-size: 13px; font-weight: 600; text-shadow: 0 1px 2px #000; white-space: nowrap; }
   #clock-icon { width: 18px; height: 18px; }
-  #minimap-wrap { position: absolute; top: 14px; right: 14px; z-index: 10; pointer-events: none; text-align: center; font-size: 12px; font-weight: 600; text-shadow: 0 1px 2px #000; }
+  #minimap-wrap { position: absolute; top: calc(env(safe-area-inset-top) + 14px); right: calc(env(safe-area-inset-right) + 14px); z-index: 10; pointer-events: none; text-align: center; font-size: 12px; font-weight: 600; text-shadow: 0 1px 2px #000; }
   #minimap { width: 176px; height: 176px; display: block; border-radius: 50%; box-shadow: 0 6px 22px rgba(0,0,0,0.35); }
   #water-dist { margin-top: 5px; display: inline-block; padding: 2px 10px; border-radius: 99px; background: rgba(10,30,50,0.55); color: #9fd3ff; }
   #warning { position: absolute; top: 18px; left: 50%; transform: translateX(-50%); padding: 9px 18px; border-radius: 99px; background: linear-gradient(90deg, rgba(140,10,10,0.75), rgba(190,40,20,0.75)); border: 1px solid rgba(255,120,100,0.6); font-size: 15px; font-weight: 700; letter-spacing: .02em; z-index: 11; pointer-events: none; text-shadow: 0 1px 2px #000; white-space: nowrap; box-shadow: 0 0 24px rgba(255,40,20,0.35); animation: pulse 1.2s infinite; }
@@ -40,10 +44,11 @@
   #prompt:empty { display: none; }
   #hint { position: absolute; bottom: 86px; width: 100%; text-align: center; color: #dfe7d6; font-size: 13.5px; text-shadow: 0 1px 3px #000; pointer-events: none; z-index: 10; }
   body.paused #toast { opacity: 0 !important; }
-  #toast { position: absolute; top: 30%; left: 50%; transform: translateX(-50%); max-width: 78vw; text-align: center; font-size: 16px; font-weight: 500; padding: 9px 18px; border-radius: 12px; background: rgba(8,14,10,0.5); text-shadow: 0 1px 3px #000; pointer-events: none; z-index: 12; opacity: 0; transition: opacity .35s; }
+  #msgs { position: absolute; top: calc(env(safe-area-inset-top) + 74px); left: 0; right: 0; margin: 0 auto; width: min(620px, 70vw); display: flex; flex-direction: column; align-items: center; gap: 8px; pointer-events: none; z-index: 12; }
+  #toast { max-width: 100%; text-align: center; font-size: 16px; font-weight: 500; padding: 9px 18px; border-radius: 12px; background: rgba(8,14,10,0.5); text-shadow: 0 1px 3px #000; pointer-events: none; z-index: 12; opacity: 0; transition: opacity .35s; }
   #damage { position: absolute; inset: 0; pointer-events: none; z-index: 9; background: radial-gradient(ellipse at center, rgba(150,0,0,0) 45%, rgba(160,0,0,0.8) 100%); opacity: 0; }
   #sleep-overlay { position: absolute; inset: 0; background: radial-gradient(ellipse at center, #0b1220, #000); z-index: 15; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 300; letter-spacing: .08em; color: #cfd8dc; opacity: 0; pointer-events: none; transition: opacity .6s; }
-  .overlay { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 20; text-align: center; padding: 24px; background: radial-gradient(ellipse at 50% 40%, rgba(0,0,0,0.15), rgba(0,0,0,0.7) 75%); }
+  .overlay { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: safe center; overflow-y: auto; touch-action: pan-y; padding-top: max(24px, env(safe-area-inset-top)); padding-bottom: max(24px, env(safe-area-inset-bottom)); align-items: center; z-index: 20; text-align: center; padding: 24px; background: radial-gradient(ellipse at 50% 40%, rgba(0,0,0,0.15), rgba(0,0,0,0.7) 75%); }
   #title { cursor: pointer; background: linear-gradient(180deg, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.35) 55%, rgba(0,0,0,0.8) 100%); }
   .logo { font-family: Georgia, "Times New Roman", serif; font-size: 76px; font-weight: 700; letter-spacing: .12em; line-height: 1; background: linear-gradient(180deg, #f3ffd6 0%, #b5e06a 45%, #5d9b2c 100%); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 4px 14px rgba(0,0,0,0.6)); }
   .sublogo { margin: 8px 0 18px; font-size: 15px; font-weight: 700; letter-spacing: .5em; color: #f6d27a; text-shadow: 0 2px 8px rgba(0,0,0,0.8); padding-left: .5em; }
@@ -66,6 +71,84 @@
   .msg { color: #ffab91; font-size: 13px; min-height: 18px; margin-top: 6px; }
   .small { font-size: 12.5px; color: #b8c4ae; line-height: 1.6; }
   #debug { position: absolute; bottom: 8px; left: 8px; font: 11px ui-monospace, Menlo, monospace; color: #9f9; z-index: 30; pointer-events: none; white-space: pre; text-shadow: 1px 1px 1px #000; }
+
+  /* ---- loading / errors ---- */
+  #load { width: min(360px, 80vw); margin: 6px auto 0; }
+  #load-track { height: 6px; border-radius: 99px; background: rgba(255,255,255,0.12); overflow: hidden; }
+  #load-bar { height: 100%; width: 3%; border-radius: 99px; background: linear-gradient(90deg, #8bc34a, #f6c453); transition: width .25s; }
+  #load-text { font-size: 12.5px; color: #cfdcc4; margin-top: 6px; text-shadow: 0 1px 2px #000; }
+  #fatal { position: fixed; inset: 0; z-index: 100; display: none; align-items: center; justify-content: center; padding: 24px; background: #0b140d; color: #eef3e6; text-align: center; font: 15px/1.5 system-ui, sans-serif; }
+  #fatal.show { display: flex; }
+  #fatal pre { white-space: pre-wrap; font-size: 12px; color: #ffab91; margin: 10px 0; max-width: 90vw; }
+  /* ---- input-specific text ---- */
+  body.touch .kb-only { display: none !important; }
+  body:not(.touch) .touch-only { display: none !important; }
+  /* ---- tutorial tip ---- */
+  #tip { max-width: 100%; text-align: center; padding: 8px 16px; border-radius: 14px; background: rgba(30,40,12,0.72); border: 1px solid rgba(246,196,83,0.55); color: #fff3cf; font-size: 15px; font-weight: 600; text-shadow: 0 1px 2px #000; pointer-events: none; z-index: 12; transition: opacity .4s; }
+  #tip:empty { display: none; }
+  #tip .step { display: block; font-size: 10.5px; letter-spacing: .12em; color: #f6c453; text-transform: uppercase; margin-bottom: 2px; }
+  /* ---- touch controls ---- */
+  #touch { position: absolute; inset: 0; z-index: 8; }
+  body:not(.touch) #touch { display: none; }
+  #stick { position: absolute; width: 132px; height: 132px; margin: -66px 0 0 -66px; border-radius: 50%; background: radial-gradient(circle, rgba(255,255,255,0.05) 40%, rgba(255,255,255,0.14) 72%, rgba(255,255,255,0.04)); border: 2px solid rgba(255,255,255,0.3); pointer-events: none; opacity: .5; transition: opacity .2s; }
+  #stick.active { opacity: 1; }
+  #stick-knob { position: absolute; left: 50%; top: 50%; width: 58px; height: 58px; margin: -29px 0 0 -29px; border-radius: 50%; background: radial-gradient(circle at 40% 35%, rgba(255,255,255,0.92), rgba(190,225,160,0.7)); box-shadow: 0 2px 10px rgba(0,0,0,0.45); }
+  #stick-knob.sprint { background: radial-gradient(circle at 40% 35%, #fff6d6, #f6c453); }
+  #stick-label { position: absolute; top: 100%; left: 0; right: 0; margin-top: 6px; font-size: 10.5px; letter-spacing: .14em; color: rgba(255,255,255,0.75); text-align: center; text-shadow: 0 1px 2px #000; }
+  #stick.active #stick-label { display: none; }
+  .tbtn { position: absolute; z-index: 14; border-radius: 50%; border: 2px solid rgba(255,255,255,0.38); color: #fff; font-family: inherit; font-weight: 800; font-size: 12.5px; line-height: 1.1; letter-spacing: .05em; text-transform: uppercase; text-shadow: 0 1px 2px #000; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; padding: 6px; touch-action: none; user-select: none; -webkit-user-select: none; box-shadow: 0 4px 16px rgba(0,0,0,0.35); }
+  .tbtn svg { width: 28px; height: 28px; flex: none; filter: drop-shadow(0 1px 1px rgba(0,0,0,0.5)); }
+  #btn-act { width: 100px; height: 100px; right: calc(env(safe-area-inset-right) + 22px); bottom: calc(env(safe-area-inset-bottom) + 24px); background: radial-gradient(circle at 40% 30%, rgba(168,214,96,0.85), rgba(62,112,30,0.85)); }
+  #btn-act.idle { background: rgba(24,34,24,0.45); color: rgba(255,255,255,0.55); border-color: rgba(255,255,255,0.2); box-shadow: none; }
+  #btn-act.hot { animation: actpulse 1.1s infinite; }
+  @keyframes actpulse { 50% { box-shadow: 0 0 0 6px rgba(246,196,83,0.35), 0 4px 16px rgba(0,0,0,0.35); } }
+  #btn-jump { width: 76px; height: 76px; right: calc(env(safe-area-inset-right) + 136px); bottom: calc(env(safe-area-inset-bottom) + 18px); background: radial-gradient(circle at 40% 30%, rgba(110,150,200,0.75), rgba(36,58,96,0.75)); font-size: 11.5px; }
+  #btn-pause { position: absolute; z-index: 14; width: 44px; height: 44px; border-radius: 12px; top: calc(env(safe-area-inset-top) + 10px); right: calc(env(safe-area-inset-right) + 126px); background: rgba(10,16,12,0.6); border: 1px solid rgba(255,255,255,0.28); display: flex; align-items: center; justify-content: center; gap: 5px; }
+  #btn-pause i { display: block; width: 5px; height: 17px; border-radius: 2px; background: #fff; }
+  .tbtn.down, #btn-pause.down { transform: scale(0.93); filter: brightness(1.3); }
+  #rotate-hint { position: absolute; left: 50%; bottom: calc(env(safe-area-inset-bottom) + 200px); transform: translateX(-50%); padding: 6px 14px; border-radius: 99px; background: rgba(10,16,12,0.6); border: 1px solid rgba(255,255,255,0.2); font-size: 12.5px; color: #dfe7d6; white-space: nowrap; pointer-events: none; z-index: 12; transition: opacity .6s; display: none; }
+  @media (orientation: portrait) { body.touch #rotate-hint.on { display: block; } }
+  /* compact HUD for touch screens */
+  body.touch #hud { width: 172px; padding: 8px 10px 6px; border-radius: 12px; top: calc(env(safe-area-inset-top) + 8px); left: calc(env(safe-area-inset-left) + 8px); }
+  body.touch .stat { grid-template-columns: 16px 1fr; gap: 6px; margin-bottom: 5px; }
+  body.touch .stat svg { width: 15px; height: 15px; }
+  body.touch .lbl { display: none; }
+  body.touch .bar-container { height: 7px; }
+  body.touch #clock { font-size: 11px; }
+  body.touch #clock-icon { width: 14px; height: 14px; }
+  body.touch #minimap { width: 108px; height: 108px; }
+  body.touch #minimap-wrap { top: calc(env(safe-area-inset-top) + 8px); right: calc(env(safe-area-inset-right) + 8px); font-size: 10.5px; }
+  body.touch #warning { font-size: 12.5px; padding: 6px 12px; white-space: normal; width: max-content; max-width: calc(100vw - 440px); min-width: 170px; text-align: center; top: calc(env(safe-area-inset-top) + 10px); }
+  body.touch #msgs { top: calc(env(safe-area-inset-top) + 62px); width: calc(100vw - 420px); min-width: 220px; gap: 6px; }
+  body.touch #toast { font-size: 13px; padding: 6px 12px; }
+  body.touch #tip { font-size: 12.5px; padding: 5px 12px; }
+  body.touch #tip .step { display: inline; margin-right: 6px; font-size: 10px; }
+  body.touch #prompt.has-btn { display: none; }
+  @media (orientation: landscape) { body.touch #toast { position: fixed; left: 0; right: 0; margin: 0 auto; width: max-content; max-width: calc(100vw - 480px); bottom: calc(env(safe-area-inset-bottom) + 64px); font-size: 12.5px; } }
+  body.touch #prompt { font-size: 13.5px; bottom: calc(env(safe-area-inset-bottom) + 18px); padding: 6px 14px; max-width: 34vw; white-space: normal; text-align: center; }
+  body.touch #hint { display: none; }
+  body.touch #crosshair { width: 5px; height: 5px; }
+  body.touch #debug { font-size: 8px; left: 50%; transform: translateX(-50%); bottom: 1px; opacity: .6; }
+  @media (orientation: portrait) {
+    body.touch #hud { width: 150px; }
+    body.touch #minimap { width: 88px; height: 88px; }
+    body.touch #btn-pause { right: calc(env(safe-area-inset-right) + 106px); }
+    body.touch #warning { max-width: calc(100vw - 24px); top: calc(env(safe-area-inset-top) + 150px); }
+    body.touch #msgs { width: calc(100vw - 28px); top: calc(env(safe-area-inset-top) + 196px); }
+    body.touch #prompt { bottom: calc(env(safe-area-inset-bottom) + 222px); max-width: 80vw; }
+    #btn-act { width: 90px; height: 90px; }
+    #btn-jump { width: 70px; height: 70px; right: calc(env(safe-area-inset-right) + 34px); bottom: calc(env(safe-area-inset-bottom) + 128px); }
+  }
+  /* small screens: compact title / cards */
+  @media (max-width: 640px), (max-height: 520px) {
+    .logo { font-size: 46px; } .sublogo { font-size: 11px; margin: 5px 0 10px; }
+    .tagline { font-size: 13px; margin-bottom: 10px; }
+    .card { padding: 12px 14px; border-radius: 14px; } .card h1, .card h2 { font-size: 28px; margin-bottom: 6px; }
+    .controls { font-size: 12.5px; gap: 4px 16px; } .card p { font-size: 13.5px; margin-bottom: 8px; }
+    .btn { padding: 10px 24px; margin: 6px; } .settings { gap: 8px 12px; font-size: 13px; }
+  }
+  @media (max-height: 520px) { .tagline { display: none; } .logo { font-size: 38px; } }
+  @media (max-width: 640px) { .controls { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
@@ -84,8 +167,15 @@
   <div id="warning" class="hidden"></div>
   <div id="prompt"></div>
   <div id="hint"></div>
-  <div id="toast"></div>
   <div id="damage"></div>
+  <div id="msgs"><div id="tip"></div><div id="toast"></div></div>
+  <div id="rotate-hint">&#x21bb; Tip: turn your phone sideways for a wider view</div>
+  <div id="touch">
+    <div id="stick"><div id="stick-knob"></div><div id="stick-label">MOVE</div></div>
+    <button id="btn-jump" class="tbtn" aria-label="Jump"><svg viewBox="0 0 24 24"><path fill="#fff" d="M12 3l7 8h-4.5v6h-5v-6H5z"/><rect x="6" y="19" width="12" height="2.2" rx="1" fill="#fff"/></svg><span id="jump-label">Jump</span></button>
+    <button id="btn-act" class="tbtn idle" aria-label="Action"><svg viewBox="0 0 24 24"><path fill="#fff" d="M9 11V5.5a1.5 1.5 0 0 1 3 0V10h.5V4a1.5 1.5 0 0 1 3 0v6h.5V6a1.5 1.5 0 0 1 3 0v8.5c0 4-2.7 6.5-6.5 6.5-2.6 0-4.4-1.3-5.7-3.4L4.3 13a1.5 1.5 0 0 1 2.5-1.6L9 14z"/></svg><span id="act-label">Action</span></button>
+    <button id="btn-pause" aria-label="Pause"><i></i><i></i></button>
+  </div>
 </div>
 <div id="sleep-overlay"><div id="sleep-text">Sleeping…</div></div>
 
@@ -93,33 +183,45 @@
   <div class="logo">CANOPY</div>
   <div class="sublogo">PRIMATE RULE</div>
   <div class="tagline">Survive as a chimpanzee in an equatorial rainforest. Eat figs high in the trees, drink at the water hole, keep your troop's favor, and get off the forest floor before the leopard hunts at night.</div>
-  <div class="card">
+  <div class="card kb-only">
     <div class="controls">
-      <div><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> Knuckle-walk · <kbd>Shift</kbd> Sprint</div>
-      <div><kbd>Space</kbd> Jump, or grab an adjacent trunk</div>
-      <div>On a trunk: <kbd>Space</kbd>/<kbd>W</kbd> up · <kbd>S</kbd> down · <kbd>A</kbd>/<kbd>D</kbd> around</div>
-      <div><kbd>E</kbd> step onto a branch · <kbd>Q</kbd> let go of the trunk</div>
-      <div><kbd>E</kbd> Eat figs, drink (hold), groom, sleep in a nest</div>
-      <div><kbd>N</kbd> Build a sleeping nest high in a tree (10 m+)</div>
+      <div><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> Move · <kbd>Shift</kbd> Sprint · Mouse: look</div>
+      <div><kbd>E</kbd> Do it: eat · drink · groom · build nest · sleep</div>
+      <div><b>Walk into a tree</b> to climb · <kbd>W</kbd>/<kbd>S</kbd> up/down</div>
+      <div><kbd>Space</kbd> Jump · let go of a tree · climb down</div>
+      <div>Look out along a branch and walk to step onto it</div>
+      <div><kbd>Esc</kbd> Pause and graphics settings</div>
     </div>
-    <div class="small" style="margin-top:10px">Hunger, thirst, falls and leopards cost health. Sleep in a nest to rest safely through the night. <kbd>Esc</kbd> pauses (graphics settings there).</div>
+    <div class="small" style="margin-top:8px">Hunger, thirst, falls and leopards cost health. At night, sleep in a nest high in a tree.</div>
+  </div>
+  <div class="card touch-only">
+    <div class="controls">
+      <div><b>Left thumb</b>: move (push far to run)</div>
+      <div><b>Right thumb</b>: drag to look around</div>
+      <div><b>Walk into a tree</b> to climb · stick up/down</div>
+      <div><b>ACTION</b>: eat · drink · groom · nest · sleep</div>
+      <div><b>JUMP</b>: jump · let go · climb down</div>
+      <div>At night, sleep in a nest high in a tree</div>
+    </div>
   </div>
   <div class="best" id="title-best"></div>
   <button class="btn" id="play-btn" disabled>Loading…</button>
+  <div id="load"><div id="load-track"><div id="load-bar"></div></div><div id="load-text">Starting…</div></div>
   <div class="msg" id="title-msg"></div>
 </div>
 
 <div id="pause" class="overlay hidden">
-  <div class="card" style="min-width:460px">
+  <div class="card" style="min-width:min(460px, 92vw)">
     <h1>PAUSED</h1>
     <div class="settings">
       <label for="quality">Graphics</label>
-      <select id="quality"><option value="auto">Auto (adapts to frame rate)</option><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option></select>
-      <label for="sens">Mouse sensitivity</label><input type="range" id="sens" min="0.3" max="2.5" step="0.05">
+      <select id="quality"><option value="auto">Auto (adapts to frame rate)</option><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option><option value="mobile">Phone (balanced)</option></select>
+      <label for="sens">Look sensitivity</label><input type="range" id="sens" min="0.3" max="2.5" step="0.05">
       <label for="vol">Volume</label><input type="range" id="vol" min="0" max="1" step="0.05">
     </div>
     <div class="small" id="quality-info"></div>
-    <div class="small" style="margin:8px 0 6px"><kbd>WASD</kbd> move · <kbd>Shift</kbd> sprint · <kbd>Space</kbd> jump/grab · <kbd>E</kbd> interact · <kbd>N</kbd> nest · on trunk <kbd>S</kbd> down <kbd>Q</kbd> let go</div>
+    <div class="small kb-only" style="margin:8px 0 6px"><kbd>WASD</kbd> move · <kbd>Shift</kbd> sprint · walk into a tree to climb · <kbd>Space</kbd> jump / let go · <kbd>E</kbd> action</div>
+    <div class="small touch-only" style="margin:8px 0 6px">Left stick: move · drag right side: look · ACTION does what the button says · JUMP lets go of trees</div>
     <div>
       <button class="btn" id="resume-btn">Resume</button>
       <button class="btn secondary" id="pause-restart-btn">Restart</button>
@@ -129,7 +231,7 @@
 </div>
 
 <div id="gameover" class="overlay hidden">
-  <div class="card" style="min-width:440px">
+  <div class="card" style="min-width:min(440px, 92vw)">
     <h2 id="go-title" style="color:#ef9a9a">YOU DIED</h2>
     <p id="go-cause"></p>
     <p id="go-time" style="font-size:19px;font-weight:600;color:#fff"></p>
@@ -139,6 +241,27 @@
   </div>
 </div>
 <div id="debug" class="hidden"></div>
+<div id="fatal"><div><h2 style="font-family:Georgia,serif;color:#c5e1a5;margin-bottom:8px">Canopy could not start</h2><div id="fatal-msg">Something went wrong.</div><pre id="fatal-detail"></pre><button class="btn" onclick="location.reload()">Reload</button></div></div>
+<script>
+// Classic (non-module) guard: never leave a blank page.
+(function () {
+  function show(msg, detail) {
+    var f = document.getElementById('fatal'); if (!f) return;
+    document.getElementById('fatal-msg').textContent = msg;
+    document.getElementById('fatal-detail').textContent = detail || '';
+    f.className = 'show';
+  }
+  window.__canopyFatal = show;
+  window.addEventListener('error', function (e) { if (!window.__canopyReady) show('The game hit an error while loading.', String(e.message || e.error || e)); });
+  window.addEventListener('unhandledrejection', function (e) { if (!window.__canopyReady) show('The game hit an error while loading.', String((e.reason && e.reason.message) || e.reason)); });
+  var c = document.createElement('canvas');
+  if (!(c.getContext('webgl2') || c.getContext('webgl'))) show('Your browser or device does not support WebGL, which this 3D game needs.', 'Try an up-to-date Chrome, Safari or Firefox, and make sure hardware acceleration is on.');
+  setTimeout(function () { if (!window.__canopyReady) { var t = document.getElementById('load-text'); if (t) t.textContent = 'Still loading… (slow connection?) If this never finishes, reload the page.'; } }, 25000);
+  // Block iOS pinch-zoom / double-tap zoom gestures
+  document.addEventListener('gesturestart', function (e) { e.preventDefault(); }, { passive: false });
+  document.addEventListener('dblclick', function (e) { e.preventDefault(); }, { passive: false });
+})();
+</script>
 <script type="module">
 // ===== Canopy: Primate Rule v2 — three.js r160 (ES module, CDN with fallback) =====
 const PARAMS = new URLSearchParams(location.search);
@@ -149,20 +272,22 @@ const CDNS = [
   'https://unpkg.com/three@' + THREE_VERSION + '/build/three.module.js',
 ];
 let THREE = null;
+function loadStage(text, pct) {
+  const t = document.getElementById('load-text'), b = document.getElementById('load-bar');
+  if (t) t.textContent = text; if (b) b.style.width = Math.max(3, Math.min(100, pct)) + '%';
+  return new Promise((r) => requestAnimationFrame(() => setTimeout(r, 0)));   // let the loading bar paint
+}
+function fatal(msg, detail) { console.error(msg, detail || ''); if (window.__canopyFatal) window.__canopyFatal(msg, String(detail || '')); }
+await loadStage('Loading 3D engine…', 5);
 for (const url of CDNS) { try { THREE = await import(url); break; } catch (e) { console.warn('three.js CDN failed:', url); } }
 if (!THREE) {
-  document.getElementById('play-btn').textContent = 'Could not load 3D engine';
-  document.getElementById('title-msg').textContent = 'three.js failed to load from all CDNs. Check your connection and reload.';
+  fatal('Could not download the 3D engine (three.js).', 'Check your internet connection and reload. Both CDNs (jsDelivr, unpkg) failed.');
 } else {
-  try { initGame(THREE); }
-  catch (err) {
-    console.error(err);
-    document.getElementById('play-btn').textContent = 'Error starting game';
-    document.getElementById('title-msg').textContent = String((err && err.message) || err);
-  }
+  try { await initGame(THREE); window.__canopyReady = true; }
+  catch (err) { fatal('The game failed to start on this device.', (err && (err.stack || err.message)) || err); }
 }
 
-function initGame(THREE) {
+async function initGame(THREE) {
   const $ = (id) => document.getElementById(id);
   const TAU = Math.PI * 2;
   const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
@@ -174,6 +299,13 @@ function initGame(THREE) {
   const rand = mulberry32(SEED);          // world layout
   const trand = mulberry32(777);          // textures
   const UP = new THREE.Vector3(0, 1, 0);
+  function kbdify(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/\[([A-Za-z]+)\]/g, '<kbd>$1</kbd>'); }
+  // ---------------- Device detection ----------------
+  const mq = (q) => !!(window.matchMedia && window.matchMedia(q).matches);
+  const IS_MOBILE = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  let isTouch = PARAMS.get('touch') === '1' || mq('(pointer: coarse)') || (navigator.maxTouchPoints > 0 && !mq('(hover: hover)')) || IS_MOBILE;
+  function setTouchMode(on) { isTouch = on; document.body.classList.toggle('touch', on); $('play-btn').textContent = $('play-btn').disabled ? 'Loading…' : (on ? 'Tap to play' : 'Click anywhere to play'); }
+  document.body.classList.toggle('touch', isTouch);
 
   // ---------------- Constants ----------------
   const WORLD_R = 138, POND_R = 14, GRAVITY = 22, EYE = 1.5, WATER_Y = -0.08;
@@ -250,6 +382,7 @@ function initGame(THREE) {
     g.bezierCurveTo(wid * 0.62, len * 0.22, wid * 0.55, len * 0.78, 0, len);
     g.bezierCurveTo(-wid * 0.55, len * 0.78, -wid * 0.62, len * 0.22, 0, 0); g.fill();
   }
+  await loadStage('Painting textures…', 10);
   const TEX = {};
   { // Bark
     const w = 256, h = 512, c = makeCanvas(w, h), g = c.getContext('2d');
@@ -378,6 +511,8 @@ function initGame(THREE) {
     gr.addColorStop(0, 'rgba(255,255,230,1)'); gr.addColorStop(0.25, 'rgba(255,225,120,0.85)'); gr.addColorStop(1, 'rgba(255,180,0,0)');
     g.fillStyle = gr; g.fillRect(0, 0, 64, 64); TEX.glow = toTex(c, true, false);
   }
+
+  await loadStage('Setting up the renderer…', 15);
 
   // ---------------- Height + distance fog (patched into every built-in material) ----------------
   THREE.ShaderChunk.fog_pars_vertex = '#ifdef USE_FOG\n varying float vFogDepth;\n varying float vFogH;\n#endif';
@@ -515,7 +650,9 @@ function initGame(THREE) {
       gl_FragColor = vec4(c, 1.0); }`, compU);
 
   const post = { enabled: true, rays: true, rtScene: null, rtHalf: null, rtQ1: null, rtQ2: null, rtE1: null, rtE2: null, rtRays: null, samples: 4 };
-  function rt(w, h, samples, depth) { return new THREE.WebGLRenderTarget(Math.max(1, w), Math.max(1, h), { type: THREE.HalfFloatType, samples: samples || 0, depthBuffer: !!depth, stencilBuffer: false }); }
+  // HalfFloat targets only where the GPU can render to them (many older phones can't); MSAA only on WebGL2
+  post.hdr = renderer.capabilities.isWebGL2 ? (renderer.extensions.has('EXT_color_buffer_half_float') || renderer.extensions.has('EXT_color_buffer_float')) : (renderer.extensions.has('OES_texture_half_float') && renderer.extensions.has('EXT_color_buffer_half_float'));
+  function rt(w, h, samples, depth) { return new THREE.WebGLRenderTarget(Math.max(1, w), Math.max(1, h), { type: post.hdr ? THREE.HalfFloatType : THREE.UnsignedByteType, samples: renderer.capabilities.isWebGL2 ? (samples || 0) : 0, depthBuffer: !!depth, stencilBuffer: false }); }
   function buildTargets() {
     for (const k of ['rtScene', 'rtHalf', 'rtQ1', 'rtQ2', 'rtE1', 'rtE2', 'rtRays']) if (post[k]) { post[k].dispose(); post[k] = null; }
     if (!post.enabled) return;
@@ -557,6 +694,8 @@ function initGame(THREE) {
     compU.tScene.value = post.rtScene.texture; compU.tBloom.value = post.rtE2.texture; compU.tRays.value = post.rtRays.texture; compU.useRays.value = useRays;
     pass(compMat, null);
   }
+
+  await loadStage('Growing the rainforest…', 30);
 
   // ---------------- Geometry helpers ----------------
   const M4 = new THREE.Matrix4(), Q = new THREE.Quaternion(), P = new THREE.Vector3(), S = new THREE.Vector3(), D = new THREE.Vector3(), COL = new THREE.Color(), E3 = new THREE.Euler();
@@ -868,6 +1007,8 @@ function initGame(THREE) {
     }
   }
 
+  await loadStage('Planting the undergrowth…', 50);
+
   // ---------------- Leaf-card cluster geometry (shared by all canopy, bushes, saplings) ----------------
   function cardQuad(cx, cy, cz, ux, uy, uz, vx, vy, vz, w, h, pos, nor, uv, idx, nfn, uv0, uvS) {
     const b = pos.length / 3;
@@ -1143,6 +1284,8 @@ function initGame(THREE) {
   const nestMat = new THREE.MeshLambertMaterial({ vertexColors: true, map: TEX.ground });
   const playerNests = [];
 
+  await loadStage('Adding fireflies and mist…', 65);
+
   // ---------------- Atmosphere FX: light shafts, motes, fireflies, falling leaves, splashes ----------------
   const shaftU = { sunDir: skyU.sunDir, strength: { value: 0 }, col: { value: new THREE.Color(1, 0.85, 0.6) }, time: U.time };
   const shaftMat = new THREE.ShaderMaterial({
@@ -1262,6 +1405,8 @@ function initGame(THREE) {
     }
     splashGeo.attributes.position.needsUpdate = true;
   }
+
+  await loadStage('Waking the troop…', 75);
 
   // ---------------- Creature helpers ----------------
   function capsule(r, len, cs, rs) { const g = new THREE.CapsuleGeometry(r, len, cs || 3, rs || 8); g.translate(0, -len / 2, 0); scaleUV(g, 2, 2); return g; }   // top cap centre at the joint, hangs down -Y
@@ -1528,6 +1673,9 @@ function initGame(THREE) {
   function socialTier() { return stats.social < 25 ? 'outcast' : stats.social >= 70 ? 'favored' : 'member'; }
   function dayNumber() { return Math.floor((startHour + totalHours) / 24) + 1; }
 
+  // ---------------- Input-aware key names ----------------
+  // K('E') -> "[E]" on keyboard, "ACTION" on touch; rendered as <kbd> by kbdify().
+  function K(k) { if (!isTouch) return '[' + k + ']'; return k === 'E' || k === 'N' ? '[ACTION]' : k === 'Space' || k === 'Q' ? '[JUMP]' : 'the stick'; }
   // ---------------- Input ----------------
   const keys = Object.create(null), pressed = Object.create(null);
   function wasPressed(code) { if (pressed[code]) { pressed[code] = false; return true; } return false; }
@@ -1566,7 +1714,7 @@ function initGame(THREE) {
     if (!pendingAction) return;
     if (!everLocked && pendingAction === 'start') {
       unlockedMode = true; const a = pendingAction; pendingAction = null; doAction(a);
-      toast('Mouse capture unavailable: drag with the mouse to look. Esc pauses.', 5);
+      toast('Mouse capture unavailable: hold the mouse button and drag to look. Esc pauses.', 5);
     } else {
       const m = state === 'paused' ? $('pause-msg') : state === 'dead' ? $('go-msg') : $('title-msg');
       m.textContent = "Couldn't capture the mouse. Click again in a moment.";
@@ -1581,22 +1729,33 @@ function initGame(THREE) {
       if (pendingAction) { const a = pendingAction; pendingAction = null; doAction(a); }
     } else if (state === 'playing') pause();
   });
+  let lockTimer = 0;
+  function goFullscreen() {
+    const el = document.documentElement, fn = el.requestFullscreen || el.webkitRequestFullscreen;
+    if (!fn || document.fullscreenElement || document.webkitFullscreenElement) return;
+    try { const r = fn.call(el, { navigationUI: 'hide' }); if (r && r.catch) r.catch(() => {}); } catch (e) { /* not allowed: fine */ }
+  }
   function begin(action) {
     sfx.init(); sfx.ui();
+    if (isTouch) { unlockedMode = true; if (!DEBUG) goFullscreen(); doAction(action); return; }   // phones/tablets: no pointer lock needed
     if (unlockedMode || isLocked) doAction(action);
-    else { pendingAction = action; requestLock(); }
+    else if (!container.requestPointerLock) { pendingAction = action; onLockError(); }
+    else {
+      pendingAction = action; requestLock();
+      clearTimeout(lockTimer); lockTimer = setTimeout(() => { if (pendingAction && !isLocked) onLockError(); }, 1500);   // some browsers never answer
+    }
   }
   function doAction(a) {
     $('title-msg').textContent = ''; $('pause-msg').textContent = ''; $('go-msg').textContent = '';
     if (a === 'start') {
       resetGame(); state = 'playing';
       titleEl.classList.add('hidden'); goEl.classList.add('hidden'); pauseEl.classList.add('hidden'); document.body.classList.remove('paused'); ui.classList.remove('hidden');
-      armsRoot.visible = true; sfx.resume(); clock.getDelta(); introHints();
-    } else if (a === 'resume') { state = 'playing'; pauseEl.classList.add('hidden'); document.body.classList.remove('paused'); sfx.resume(); clock.getDelta(); }
+      armsRoot.visible = true; sfx.resume(); clock.getDelta(); introHints(); resetTouch(); resetTutorial(); showRotateHint();
+    } else if (a === 'resume') { state = 'playing'; resetTouch(); pauseEl.classList.add('hidden'); document.body.classList.remove('paused'); sfx.resume(); clock.getDelta(); }
   }
   function pause() {
     if (state !== 'playing') return;
-    state = 'paused'; clearKeys(); pauseEl.classList.remove('hidden'); document.body.classList.add('paused'); sfx.suspend();
+    state = 'paused'; clearKeys(); resetTouch(); pauseEl.classList.remove('hidden'); document.body.classList.add('paused'); sfx.suspend();
   }
   titleEl.addEventListener('click', () => { if (!$('play-btn').disabled && state === 'title') begin('start'); });
   $('resume-btn').addEventListener('click', (e) => { e.stopPropagation(); begin('resume'); });
@@ -1611,7 +1770,7 @@ function initGame(THREE) {
 
   // ---------------- Toasts / damage / death ----------------
   const toastEl = $('toast');
-  function toast(msg, dur) { toastEl.textContent = msg; toastEl.style.opacity = '1'; toastT = dur || 2.6; }
+  function toast(msg, dur) { toastEl.innerHTML = kbdify(msg); toastEl.style.opacity = '1'; toastT = dur || 2.6; }
   function once(key, fn) { if (!flags[key]) { flags[key] = true; fn(); } }
   function introHints() { toast('Find figs high in the trees, drink at the water hole, groom your troop. Get up a tree before nightfall.', 6); }
   function damage(amount, cause, flash) {
@@ -1649,7 +1808,7 @@ function initGame(THREE) {
     stats.time += dh; if (stats.time >= 24) stats.time -= 24;
     totalHours += dh; fruitHours += dh;
     const night = isNight();
-    if (night && !prevNight && !sleep.active) toast('Night falls. Leopards hunt the forest floor: get high in a tree and build a nest [N].', 6);
+    if (night && !prevNight && !sleep.active) toast('Night falls. Leopards hunt the forest floor: climb high and tap ' + K('E') + ' to build a nest.', 6);
     if (!night && prevNight && !sleep.active) toast('Dawn. The leopard slinks away.', 3);
     prevNight = night;
     const dk = 'dusk' + dayNumber();
@@ -1732,6 +1891,136 @@ function initGame(THREE) {
     return clamp((dx * Math.cos(player.yaw) - dz * Math.sin(player.yaw)) / d, -1, 1) * 0.85;
   }
 
+  // ---------------- Touch controls (virtual joystick, look drag, ACTION / JUMP / pause) ----------------
+  const stick = { on: false, x: 0, y: 0, sprint: false, id: null, ox: 0, oy: 0 };
+  const STICK_R = 52;
+  const touchEl = $('touch'), stickEl = $('stick'), knobEl = $('stick-knob');
+  const btnAct = $('btn-act'), btnJump = $('btn-jump'), btnPause = $('btn-pause');
+  let lookId = null, lookX = 0, lookY = 0;
+  function stickRest() {
+    const portrait = window.innerHeight > window.innerWidth;
+    const sl = 0;
+    stickEl.style.left = (sl + (portrait ? 92 : 108)) + 'px';
+    stickEl.style.top = (window.innerHeight - (portrait ? 120 : 104)) + 'px';
+    knobEl.style.transform = ''; knobEl.classList.remove('sprint'); stickEl.classList.remove('active');
+  }
+  function inStickZone(x, y) {
+    const portrait = window.innerHeight > window.innerWidth;
+    return x < window.innerWidth * (portrait ? 0.5 : 0.42) && y > window.innerHeight * (portrait ? 0.45 : 0.3);
+  }
+  function setStick(x, y) {
+    let dx = x - stick.ox, dy = y - stick.oy; const d = Math.hypot(dx, dy);
+    if (d > STICK_R) { dx *= STICK_R / d; dy *= STICK_R / d; }
+    stick.x = dx / STICK_R; stick.y = dy / STICK_R; stick.sprint = d > STICK_R * 1.05;   // pushing past the rim = run
+    knobEl.style.transform = 'translate(' + dx.toFixed(1) + 'px,' + dy.toFixed(1) + 'px)';
+    knobEl.classList.toggle('sprint', stick.sprint);
+  }
+  function releaseStick() { stick.on = false; stick.id = null; stick.x = 0; stick.y = 0; stick.sprint = false; stickRest(); }
+  function onTouchStart(e) {
+    if (state !== 'playing') return;
+    e.preventDefault();
+    for (const t of e.changedTouches) {
+      if (stick.id === null && inStickZone(t.clientX, t.clientY)) {
+        stick.id = t.identifier; stick.on = true;
+        stick.ox = clamp(t.clientX, 70, window.innerWidth - 70); stick.oy = clamp(t.clientY, 70, window.innerHeight - 70);
+        stickEl.style.left = stick.ox + 'px'; stickEl.style.top = stick.oy + 'px'; stickEl.classList.add('active');
+        setStick(t.clientX, t.clientY);
+      } else if (lookId === null) { lookId = t.identifier; lookX = t.clientX; lookY = t.clientY; }
+    }
+  }
+  function onTouchMove(e) {
+    e.preventDefault();
+    if (state !== 'playing') return;
+    for (const t of e.changedTouches) {
+      if (t.identifier === stick.id) setStick(t.clientX, t.clientY);
+      else if (t.identifier === lookId) {
+        const dx = t.clientX - lookX, dy = t.clientY - lookY; lookX = t.clientX; lookY = t.clientY;
+        look(dx * 1.9, dy * 1.9);   // ~0.24 deg per px at default sensitivity
+      }
+    }
+  }
+  function onTouchEnd(e) {
+    for (const t of e.changedTouches) {
+      if (t.identifier === stick.id) releaseStick();
+      if (t.identifier === lookId) lookId = null;
+    }
+  }
+  touchEl.addEventListener('touchstart', onTouchStart, { passive: false });
+  touchEl.addEventListener('touchmove', onTouchMove, { passive: false });
+  touchEl.addEventListener('touchend', onTouchEnd); touchEl.addEventListener('touchcancel', onTouchEnd);
+  // Buttons: act on touchstart (no 300ms delay), hold state for "hold to drink"
+  function holdButton(el, code) {
+    let id = null;
+    el.addEventListener('touchstart', (e) => {
+      e.preventDefault(); e.stopPropagation(); if (state !== 'playing') return;
+      id = e.changedTouches[0].identifier; el.classList.add('down');
+      if (!keys[code]) pressed[code] = true; keys[code] = true;
+      if (navigator.vibrate) try { navigator.vibrate(8); } catch (err) { /* ignore */ }
+    }, { passive: false });
+    const up = (e) => { for (const t of e.changedTouches) if (t.identifier === id) { id = null; keys[code] = false; el.classList.remove('down'); } };
+    el.addEventListener('touchend', up); el.addEventListener('touchcancel', up);
+    el.addEventListener('touchmove', (e) => { e.preventDefault(); e.stopPropagation(); }, { passive: false });
+    // mouse fallback (touch UI forced on a desktop, or ?touch=1)
+    el.addEventListener('mousedown', (e) => { e.stopPropagation(); if (state !== 'playing') return; if (!keys[code]) pressed[code] = true; keys[code] = true; el.classList.add('down'); });
+    el.addEventListener('mouseup', () => { keys[code] = false; el.classList.remove('down'); });
+    el.addEventListener('mouseleave', () => { keys[code] = false; el.classList.remove('down'); });
+  }
+  holdButton(btnAct, 'KeyE'); holdButton(btnJump, 'Space');
+  const doPause = (e) => { e.preventDefault(); e.stopPropagation(); if (state === 'playing') pause(); };
+  btnPause.addEventListener('touchstart', doPause, { passive: false }); btnPause.addEventListener('click', doPause);
+  // A real touch anywhere switches to touch UI (touchscreen laptops, tablets with odd UAs) and unlocks audio on iOS
+  document.addEventListener('touchstart', () => { if (!isTouch) setTouchMode(true); }, { passive: true });
+  document.addEventListener('touchend', () => { if (state !== 'title') sfx.init(); }, { passive: true });   // iOS: resume audio inside a gesture
+  // Stop page scroll / pull-to-refresh / pinch while playing
+  document.addEventListener('touchmove', (e) => { if (state === 'playing' || e.touches.length > 1) e.preventDefault(); }, { passive: false });
+  function resetTouch() { releaseStick(); lookId = null; for (const el of [btnAct, btnJump]) el.classList.remove('down'); }
+  window.addEventListener('resize', () => { if (!stick.on) stickRest(); });
+  stickRest();
+
+  // Button labels follow the current context (set by updateInteraction)
+  let lastAct = null, lastActIdle = null, lastActHot = null, lastJump = null;
+  const actLabelEl = $('act-label'), jumpLabelEl = $('jump-label');
+  function updateTouchButtons() {
+    if (!isTouch) return;
+    const lab = actLabel || 'Action', idle = !actLabel;
+    if (lab !== lastAct) { actLabelEl.textContent = lab; lastAct = lab; }
+    if (idle !== lastActIdle) { btnAct.classList.toggle('idle', idle); lastActIdle = idle; }
+    if (actHot !== lastActHot) { btnAct.classList.toggle('hot', actHot); lastActHot = actHot; }
+    if (jumpLabel !== lastJump) { jumpLabelEl.textContent = jumpLabel; lastJump = jumpLabel; }
+  }
+
+  // ---------------- First-play tutorial (adapts to touch vs keyboard) ----------------
+  const tipEl = $('tip');
+  const TUT = [
+    { id: 'move', t: () => isTouch ? 'Move with the left stick · drag the right side to look' : 'Move with WASD · move the mouse to look', done: () => tut.moved > 4 },
+    { id: 'climb', t: () => 'Walk into a big tree trunk to climb it', done: () => player.mode === 'climb' || player.supKind === 'branch' },
+    { id: 'up', t: () => isTouch ? 'Push the stick up to climb. Look out along a branch and keep pushing to step onto it' : 'Hold W to climb. Look out along a branch and keep pressing W to step onto it', done: () => player.supKind === 'branch' || player.supKind === 'crown' },
+    { id: 'eat', t: () => isTouch ? 'Walk out to the pink figs and tap ACTION to eat' : 'Walk out to the pink figs and press E to eat', done: () => !!flags.ate },
+    { id: 'night', t: () => isTouch ? 'Drink at the water hole. At night, tap ACTION high in a tree to build a nest and sleep' : 'Drink at the water hole. At night, press E high in a tree to build a nest and sleep', done: () => tut.lastT > 7 },
+  ];
+  const tut = { i: 0, moved: 0, lastT: 0, px: 0, pz: 0, off: false, shown: '' };
+  try { tut.off = localStorage.getItem('canopy_tutorial_done') === '1'; } catch (e) { /* private mode */ }
+  function resetTutorial() { tut.i = 0; tut.moved = 0; tut.lastT = 0; tut.px = player.pos.x; tut.pz = player.pos.z; setTip(''); }
+  function setTip(html) { if (html !== tut.shown) { tipEl.innerHTML = html; tut.shown = html; } }
+  function updateTutorial(dt) {
+    if (tut.off || tut.i >= TUT.length || sleep.active) { setTip(''); return; }
+    tut.moved += Math.hypot(player.pos.x - tut.px, player.pos.z - tut.pz); tut.px = player.pos.x; tut.pz = player.pos.z;
+    const step = TUT[tut.i];
+    if (tut.i === TUT.length - 1) tut.lastT += dt;
+    if (step.done()) {
+      tut.i++;
+      while (tut.i < TUT.length && TUT[tut.i].done()) tut.i++;
+      if (tut.i >= TUT.length) { try { localStorage.setItem('canopy_tutorial_done', '1'); } catch (e) { /* ignore */ } setTip(''); return; }
+    }
+    setTip('<span class="step">Tip ' + (tut.i + 1) + ' / ' + TUT.length + '</span>' + TUT[tut.i].t().replace(/&/g, '&amp;'));
+  }
+  // Portrait hint (still fully playable in portrait)
+  const rotEl = $('rotate-hint'); let rotT = 0;
+  function showRotateHint() { if (isTouch && window.innerHeight > window.innerWidth) { rotEl.classList.add('on'); rotEl.style.opacity = '1'; rotT = 6; } }
+  function updateRotateHint(dt) { if (rotT > 0) { rotT -= dt; if (rotT <= 0 || window.innerWidth > window.innerHeight) { rotEl.style.opacity = '0'; rotT = 0; } } }
+
+  await loadStage('Teaching the leopard to hunt…', 82);
+
   // ---------------- World queries ----------------
   // Highest walkable surface under (x,z) that is not above maxY (terrain itself is always walkable). Fills sup.kind/ref.
   function findSupport(x, z, maxY) {
@@ -1808,7 +2097,7 @@ function initGame(THREE) {
     startHour = dbgTime !== null ? dbgTime : 8; stats.time = startHour; totalHours = 0; fruitHours = 0;
     prevNight = isNight();
     sleep.active = false; $('sleep-overlay').style.opacity = '0';
-    Object.assign(player, { yaw: 0, pitch: -0.05, onGround: true, mode: 'walk', tree: null, supKind: 'ground', supRef: null, inWater: false, moveLock: false, shake: 0, dip: 0, armAct: '', armT: 0 });
+    Object.assign(player, { yaw: 0, pitch: -0.05, onGround: true, mode: 'walk', tree: null, grabCd: 0, grabT: 0, supKind: 'ground', supRef: null, inWater: false, moveLock: false, shake: 0, dip: 0, armAct: '', armT: 0 });
     player.pos.set(0, groundH(0, 20), 20); player.vel.set(0, 0, 0);
     for (const k in flags) delete flags[k];
     for (const t of trees) t.ripe = 0;
@@ -1829,14 +2118,14 @@ function initGame(THREE) {
   function startClimb(t) {
     const p = player;
     p.mode = 'climb'; p.tree = t; p.climbAng = Math.atan2(p.pos.z - t.z, p.pos.x - t.x);
-    if (p.pos.y >= t.h - 0.5) p.moveLock = true;   // grabbed from the crown: don't instantly re-mount
+    if (p.pos.y >= t.h - 0.5) { p.moveLock = true; p.lockT = 1e9; }   // grabbed from the crown: don't instantly re-mount
     p.pos.y = clamp(p.pos.y, t.base, t.h - 0.4); p.vel.set(0, 0, 0); p.onGround = false;
-    sfx.grab(); once('climbHint', () => toast('Climbing! Space/W up, S down, A/D around. E steps onto a branch.', 4.5));
+    sfx.grab(); p.grabT = 0; once('climbHint', () => toast(isTouch ? 'Climbing! Push the stick up or down. Look out along a branch and push up to step onto it. JUMP lets go.' : 'Climbing! W/S up and down, A/D around. Look out along a branch and press W to step onto it. Space lets go.', 5));
   }
   function detachClimb(outSpeed) {
     const p = player, t = p.tree; p.mode = 'walk';
     const ca = Math.cos(p.climbAng), sa = Math.sin(p.climbAng);
-    p.vel.set(ca * outSpeed, 0, sa * outSpeed);
+    p.vel.set(ca * outSpeed, 0, sa * outSpeed); p.grabCd = 0.8;
     if (t && p.pos.y <= Math.max(t.base, groundH(p.pos.x, p.pos.z)) + 0.01) { const r = trunkR(t, t.base) + 0.45; p.pos.x = t.x + ca * r; p.pos.z = t.z + sa * r; p.pos.y = groundH(p.pos.x, p.pos.z); p.onGround = true; }
     else p.onGround = false;
   }
@@ -1854,7 +2143,7 @@ function initGame(THREE) {
   function stepOntoBranch(b) {
     const p = player, t = b.tree, s = trunkR(t, b.y0) + 0.95;
     p.mode = 'walk'; p.pos.set(t.x + b.ca * s, branchTop(b, s), t.z + b.sa * s); p.vel.set(0, 0, 0);
-    p.onGround = true; p.supKind = 'branch'; p.supRef = b; p.moveLock = true;
+    p.onGround = true; p.supKind = 'branch'; p.supRef = b; p.moveLock = true; p.lockT = 0.5;
     p.yaw = Math.atan2(-b.ca, -b.sa); p.pitch = -0.3;
     sfx.grab();
     once('branchHint', () => toast('Walk out along the branch to the figs. Careful: falls hurt!', 4));
@@ -1862,19 +2151,28 @@ function initGame(THREE) {
   function mountCrown(t) {
     const p = player; p.mode = 'walk';
     p.pos.set(t.x + Math.cos(p.climbAng) * 0.4, t.h, t.z + Math.sin(p.climbAng) * 0.4); p.vel.set(0, 0, 0);
-    p.onGround = true; p.supKind = 'crown'; p.supRef = t; p.moveLock = true; sfx.grab();
-    once('crownHint', () => toast('Canopy top! A safe spot for a nest: press [N]. Space grabs the trunk to climb down.', 5));
+    p.onGround = true; p.supKind = 'crown'; p.supRef = t; p.moveLock = true; p.lockT = 1e9; sfx.grab();
+    once('crownHint', () => toast('Canopy top! A safe spot for a nest: tap ' + K('E') + '. ' + K('Space') + ' climbs back down.', 5));
   }
-  function updateClimb(dt, ix) {
+  function updateClimb(dt, ix, iz, letGo) {
     const p = player, t = p.tree;
-    const up = !p.moveLock && (keys.Space || keys.KeyW || keys.ArrowUp), down = keys.KeyS || keys.ArrowDown || keys.KeyC;
+    if (letGo) { detachClimb(2.5); sfx.jump(); return; }
+    const up = !p.moveLock && iz < -0.3, down = iz > 0.3 || keys.KeyC;
+    // Pushing "forward" while looking out along a branch at about this height steps onto it
+    if (up && !p.moveLock) {
+      const b = branchStepCandidate();
+      if (b) {
+        const top = branchTop(b, trunkR(t, b.y0) + 0.9), fx = -Math.sin(p.yaw), fz = -Math.cos(p.yaw);
+        if (Math.abs(top - p.pos.y) < 0.9 && fx * b.ca + fz * b.sa > 0.55 && Math.abs(angDiff(b.angle, p.climbAng)) < 0.8) { stepOntoBranch(b); return; }
+      }
+    }
     const exhausted = stats.energy <= 0.01;
     let vy = 0;
     if (exhausted) { vy = -2.5; if (toastT <= 0) toast('Too exhausted to hold on: sliding down!', 2); }
-    else if (up && !down) { vy = 3.4; useEnergy(1.5 * dt); }
-    else if (down && !up) { vy = -4.5; useEnergy(0.15 * dt); }
+    else if (up && !down) { vy = 3.4 * clamp(-iz * 1.25, 0.45, 1); useEnergy(1.5 * dt); }
+    else if (down && !up) { vy = -4.5 * clamp(iz * 1.25, 0.45, 1); useEnergy(0.15 * dt); }
     else useEnergy(0.25 * dt);
-    if (ix !== 0 && !exhausted) p.climbAng -= ix * 1.5 * dt * (2.2 / (trunkR(t, p.pos.y) + 0.5));
+    if (Math.abs(ix) > 0.25 && !exhausted) p.climbAng -= ix * 1.5 * dt * (2.2 / (trunkR(t, p.pos.y) + 0.5));
     p.pos.y += vy * dt; p.climbPhase += Math.abs(vy) * dt * 2.2 + (ix !== 0 ? dt * 3 : 0);
     const top = t.h - 0.4;
     if (p.pos.y >= top) { p.pos.y = top; if (up && !exhausted && !p.moveLock) { mountCrown(t); return; } }
@@ -1882,8 +2180,7 @@ function initGame(THREE) {
     p.pos.x = t.x + Math.cos(p.climbAng) * R; p.pos.z = t.z + Math.sin(p.climbAng) * R;
     const bottom = Math.max(t.base, groundH(p.pos.x, p.pos.z));
     if (p.pos.y <= bottom) { p.pos.y = bottom; if (down || exhausted) { detachClimb(0); return; } }
-    if (wasPressed('KeyQ')) { detachClimb(2.5); sfx.jump(); }
-    p.moving = vy !== 0 || ix !== 0;
+    p.moving = vy !== 0 || Math.abs(ix) > 0.25;
   }
   function land(impact) {
     const p = player;
@@ -1901,17 +2198,21 @@ function initGame(THREE) {
     if (keys.KeyS || keys.ArrowDown) iz += 1;
     if (keys.KeyA || keys.ArrowLeft) ix -= 1;
     if (keys.KeyD || keys.ArrowRight) ix += 1;
-    if (p.moveLock) { if (ix === 0 && iz === 0 && !keys.Space) p.moveLock = false; else { ix = 0; iz = 0; } }
-    const spacePressed = wasPressed('Space');
-    if (p.mode === 'climb') { updateClimb(dt, ix); return; }
+    let kl = Math.hypot(ix, iz); if (kl > 0) { ix /= kl; iz /= kl; }
+    if (stick.on) { ix += stick.x; iz += stick.y; }          // analog virtual joystick
+    let mag = Math.min(1, Math.hypot(ix, iz)); if (mag < 0.12) { ix = 0; iz = 0; mag = 0; }
+    if (p.moveLock) { p.lockT = (p.lockT || 0) - dt; if ((mag === 0 && !keys.Space) || p.lockT <= 0) p.moveLock = false; else { ix = 0; iz = 0; mag = 0; } }
+    const spacePressed = wasPressed('Space'), qPressed = wasPressed('KeyQ');
+    if (p.grabCd > 0) p.grabCd -= dt;
+    if (p.mode === 'climb') { updateClimb(dt, ix, iz, spacePressed || qPressed); return; }
 
     const len = Math.hypot(ix, iz), moving = len > 0; if (moving) { ix /= len; iz /= len; }
     const sy = Math.sin(p.yaw), cy = Math.cos(p.yaw);
     const wx = ix * cy + iz * sy, wz = -ix * sy + iz * cy;
     const onBranch = p.onGround && (p.supKind === 'branch' || p.supKind === 'crown');
     const exhausted = stats.energy <= 0.01;
-    const sprintKey = keys.ShiftLeft || keys.ShiftRight;
-    let speed = onBranch ? 3.6 : 5.2, sprinting = false;
+    const sprintKey = keys.ShiftLeft || keys.ShiftRight || (stick.on && stick.sprint);
+    let speed = (onBranch ? 3.6 : 5.2) * (moving ? clamp(mag * 1.15, 0.4, 1) : 1), sprinting = false;
     if (sprintKey && moving && !exhausted && p.onGround) { speed = onBranch ? 5.5 : 9.5; sprinting = true; }
     if (exhausted) speed *= 0.65;
     if (p.inWater) speed *= 0.6;
@@ -1924,7 +2225,16 @@ function initGame(THREE) {
     else if (p.onGround && !moving) { const tier = socialTier(); stats.energy = Math.min(100, stats.energy + (tier === 'outcast' ? 0.45 : tier === 'favored' ? 1.1 : 0.9) * dt); }
 
     // Space: grab a trunk (fresh press, or held while airborne) or jump (fresh press only)
-    if (spacePressed || (keys.Space && !p.onGround && !p.moveLock)) {
+    // Walking into a trunk grabs it automatically (no key needed)
+    if (moving && p.grabCd <= 0 && p.supKind !== 'crown' && !exhausted) {
+      const t = findGrabTree();
+      if (t) {
+        const dx = t.x - p.pos.x, dz = t.z - p.pos.z, dl = Math.hypot(dx, dz) || 1, gap = dl - trunkR(t, p.pos.y);
+        if (gap < 0.85 && (dx * wx + dz * wz) / dl > 0.5) { p.grabT = (p.grabT || 0) + dt; if (p.grabT > 0.12) { startClimb(t); return; } }
+        else p.grabT = 0;
+      } else p.grabT = 0;
+    } else p.grabT = 0;
+    if (spacePressed || (keys.Space && !p.onGround && !p.moveLock && p.grabCd <= 0)) {
       const t = findGrabTree();
       if (t && !exhausted) { startClimb(t); return; }
       if (spacePressed && p.onGround) {
@@ -2099,7 +2409,7 @@ function initGame(THREE) {
     // Warnings (depend on troop standing)
     if (L.state === 'leave' || sleep.active) return;
     const tier = socialTier(), dw = relDirWord(-dx, -dz), dist = Math.round(d);
-    if (L.state === 'circle' && !playerLow) { warnText = 'The leopard is circling below. Stay up here (build a nest [N] and sleep).'; warnSoft = true; }
+    if (L.state === 'circle' && !playerLow) { warnText = 'The leopard is circling below. Stay up here: build a nest and sleep (' + K('E') + ').'; warnSoft = true; }
     else if (tier === 'favored' && d < 55) {
       warnText = '⚠ TROOP ALARM: leopard ' + dw + ' (' + dist + 'm)!';
       if (!L.alarmed) { L.alarmed = true; sfx.alarm(relPan(L.pos.x, L.pos.z)); }
@@ -2122,53 +2432,73 @@ function initGame(THREE) {
     const p = player;
     if (!(p.onGround && (p.supKind === 'branch' || p.supKind === 'crown'))) { toast('Nests must be built on a branch or the canopy top.', 2.5); return; }
     if (heightAboveGround(p.pos) < NEST_MIN_HEIGHT) { toast('Too low. Build nests ' + NEST_MIN_HEIGHT + 'm+ up, out of a leopard\'s reach.', 2.5); return; }
-    if (nestAt(p.pos.x, p.pos.y, p.pos.z, 2.2)) { toast('There is already a nest here. Press [E] to sleep.', 2.5); return; }
+    if (nestAt(p.pos.x, p.pos.y, p.pos.z, 2.2)) { toast('There is already a nest here. Tap ' + K('E') + ' to sleep.', 2.5); return; }
     if (stats.energy < 6) { toast('Too exhausted to weave a nest.', 2); return; }
     useEnergy(6);
     const n = new THREE.Mesh(nestGeo, nestMat); n.position.set(p.pos.x, p.pos.y + 0.05, p.pos.z); n.rotation.y = Math.random() * TAU; n.castShadow = true; n.receiveShadow = true; scene.add(n); playerNests.push(n);
     if (playerNests.length > 4) scene.remove(playerNests.shift());
-    sfx.nest(); toast('Nest woven! Press [E] in it to sleep (until dawn at night, or a 2h nap).', 4);
+    sfx.nest(); toast('Nest woven! ' + K('E') + ' sleeps in it (until dawn at night, or a 2h nap).', 4);
   }
   function drinkSpot() { const p = player.pos, r = Math.hypot(p.x, p.z) || 1; return { r, a: Math.atan2(p.z, p.x), x: p.x / r, z: p.z / r }; }
+  let actLabel = '', jumpLabel = 'Jump', actHot = false;
+  function canBuildNestHere() {
+    const p = player;
+    return p.onGround && (p.supKind === 'branch' || p.supKind === 'crown') && heightAboveGround(p.pos) >= NEST_MIN_HEIGHT && !nestAt(p.pos.x, p.pos.y, p.pos.z, 2.2);
+  }
+  function eatFruit(f) {
+    const p = player, bonus = socialTier() === 'favored' ? 1.3 : 1;
+    stats.hunger = Math.min(100, stats.hunger + 22 * bonus); stats.water = Math.min(100, stats.water + 4);
+    f.ripe = false; f.grow = 0; f.regrow = 8 + Math.random() * 6; f.tree.ripe--;
+    setFruitInstance(f); fruitMesh.instanceMatrix.needsUpdate = true; fruitMesh.instanceColor.needsUpdate = true;
+    sfx.eat(); p.armAct = 'eat'; p.armT = 0.7; glowFruit = null; toast('+' + Math.round(22 * bonus) + ' hunger. Figs regrow in about half a day.', 2);
+    flags.ate = true;
+  }
   function updateInteraction(dt) {
     const p = player;
     eye.set(p.pos.x, p.pos.y + EYE, p.pos.z);
     const cp = Math.cos(p.pitch);
     lookDir.set(-Math.sin(p.yaw) * cp, Math.sin(p.pitch), -Math.cos(p.yaw) * cp);
-    let prompt = '', hint = ''; aimed = false; glowFruit = null;
-    const ePressed = wasPressed('KeyE'), nPressed = wasPressed('KeyN');
+    let prompt = '', hint = ''; aimed = false; glowFruit = null; actLabel = ''; actHot = false;
+    const ePressed = wasPressed('KeyE'), nPressed = wasPressed('KeyN'), eHeld = !!keys.KeyE;
     if (p.armT > 0) p.armT -= dt;
-    if (sleep.active) { setPromptText('', ''); return; }
+    if (sleep.active) { jumpLabel = 'Jump'; setPromptText('', ''); return; }
 
     if (p.mode === 'climb') {
+      jumpLabel = 'Let go';
       const b = branchStepCandidate();
-      if (b) { prompt = 'Step onto branch [E]'; if (ePressed) stepOntoBranch(b); }
-      hint = '[Space]/[W] up · [S] down · [A]/[D] around · [Q] let go' + (p.pos.y > p.tree.h - 3 ? ' · keep climbing to reach the canopy top' : '');
+      if (b) { prompt = 'Step onto branch ' + K('E'); actLabel = 'Step on branch'; if (ePressed) stepOntoBranch(b); }
+      hint = '[W]/[S] climb · [A]/[D] around · look along a branch + [W] to step on · [Space] let go' + (p.pos.y > p.tree.h - 3 ? ' · keep climbing to reach the canopy top' : '');
       if (nPressed) toast('Step onto a branch or the canopy top to build a nest.', 2);
       setPromptText(prompt, hint); return;
     }
-    // Aimed targets: fruit and troop members
+    // Targets: what you look at first, otherwise anything right in front of you (easy on touch screens)
     let bestT = 1e9, bestFruit = null, bestChimp = null;
     for (const f of fruits) {
       if (f.grow <= 0.25) continue;
       const ddx = f.x - eye.x, ddz = f.z - eye.z; if (ddx > 5 || ddx < -5 || ddz > 5 || ddz < -5) continue;
-      const t = aimT(f.x, f.y, f.z, 0.7, 3.8); if (t >= 0 && t < bestT) { bestT = t; bestFruit = f; }
+      const t = aimT(f.x, f.y, f.z, isTouch ? 0.95 : 0.7, 3.8); if (t >= 0 && t < bestT) { bestT = t; bestFruit = f; }
     }
     for (const c of chimps) {
-      const t = aimT(c.x, c.y + 0.9, c.z, 1.0, 4.2); if (t >= 0 && t < bestT) { bestT = t; bestChimp = c; bestFruit = null; }
+      const t = aimT(c.x, c.y + 0.9, c.z, isTouch ? 1.3 : 1.0, 4.2); if (t >= 0 && t < bestT) { bestT = t; bestChimp = c; bestFruit = null; }
+    }
+    if (!bestFruit && !bestChimp) {
+      let bd = 1e9;
+      for (const f of fruits) {
+        if (!f.ripe) continue;
+        const dx = f.x - eye.x, dy = f.y - eye.y, dz = f.z - eye.z, d = Math.hypot(dx, dy, dz);
+        if (d < 2.6 && d < bd && (dx * lookDir.x + dz * lookDir.z) / (Math.hypot(dx, dz) || 1) > 0.2) { bd = d; bestFruit = f; }
+      }
+      if (!bestFruit) for (const c of chimps) {
+        const dx = c.x - eye.x, dz = c.z - eye.z, d = Math.hypot(dx, dz);
+        if (d < 2.4 && Math.abs(c.y - p.pos.y) < 1.5 && d < bd && (dx * lookDir.x + dz * lookDir.z) / (d || 1) > 0.1) { bd = d; bestChimp = c; }
+      }
     }
     const night = isNight();
     if (bestFruit) {
       aimed = true;
       if (bestFruit.ripe) {
-        prompt = 'Eat fig cluster [E]'; glowFruit = bestFruit;
-        if (ePressed) {
-          const bonus = socialTier() === 'favored' ? 1.3 : 1;
-          stats.hunger = Math.min(100, stats.hunger + 22 * bonus); stats.water = Math.min(100, stats.water + 4);
-          bestFruit.ripe = false; bestFruit.grow = 0; bestFruit.regrow = 8 + Math.random() * 6; bestFruit.tree.ripe--;
-          setFruitInstance(bestFruit); fruitMesh.instanceMatrix.needsUpdate = true; fruitMesh.instanceColor.needsUpdate = true;
-          sfx.eat(); p.armAct = 'eat'; p.armT = 0.7; glowFruit = null; toast('+' + Math.round(22 * bonus) + ' hunger. Figs regrow in about half a day.', 2);
-        }
+        prompt = 'Eat fig cluster ' + K('E'); glowFruit = bestFruit; actLabel = 'Eat fig'; actHot = true;
+        if (ePressed) eatFruit(bestFruit);
       } else prompt = 'These figs are still ripening…';
     } else if (bestChimp) {
       aimed = true;
@@ -2176,22 +2506,25 @@ function initGame(THREE) {
       if (night && c.state === 'perch') prompt = c.name + ' is asleep';
       else if (c.groomCd > 0) prompt = c.name + " isn't in the mood (" + Math.ceil(c.groomCd) + 's)';
       else {
-        prompt = 'Groom ' + c.name + ' [E]';
+        prompt = 'Groom ' + c.name + ' ' + K('E'); actLabel = 'Groom ' + c.name; actHot = true;
         if (ePressed) {
           const gain = 14; stats.social = Math.min(100, stats.social + gain); stats.energy = Math.min(100, stats.energy + 6);
           c.groomCd = 45; if (c.state !== 'groomed') c.prev = c.state; c.state = 'groomed'; c.timer = 3.5;
           sfx.groom(); p.armAct = 'groom'; p.armT = 1.4; toast('You groom ' + c.name + '. Troop standing +' + gain, 2.2);
         }
       }
-    } else {
+    }
+    if (!actLabel) {
       const nest = p.onGround ? nestAt(p.pos.x, p.pos.y, p.pos.z, 1.6) : null;
       const ds = drinkSpot();
       if (nest) {
-        prompt = (night || stats.time >= 17) ? 'Sleep in nest until dawn [E]' : stats.energy <= 85 ? 'Rest in nest for 2 hours [E]' : 'Your nest (rest here when tired)';
+        const canSleep = night || stats.time >= 17, canRest = stats.energy <= 85;
+        prompt = canSleep ? 'Sleep in nest until dawn ' + K('E') : canRest ? 'Rest in nest for 2 hours ' + K('E') : 'Your nest (rest here when tired)';
+        if (canSleep || canRest) { actLabel = canSleep ? 'Sleep' : 'Rest'; actHot = canSleep; }
         if (ePressed) startSleep(nest);
       } else if (p.onGround && p.pos.y < 0.6 && ds.r < shoreR(ds.a) + 2.2) {
-        prompt = 'Hold [E] to drink';
-        if (keys.KeyE) {
+        prompt = isTouch ? 'Hold ACTION to drink' : 'Hold [E] to drink'; actLabel = 'Drink'; actHot = stats.water < 60;
+        if (eHeld) {
           stats.water = Math.min(100, stats.water + 28 * dt); p.armAct = 'drink'; p.armT = 0.25;
           p.drinkT -= dt;
           if (p.drinkT <= 0) {
@@ -2199,22 +2532,25 @@ function initGame(THREE) {
             const wr = Math.min(ds.r, shoreR(ds.a)) - 0.5; splash(ds.x * wr, ds.z * wr, 5, 0.6);
           }
         }
+      } else if (canBuildNestHere() && !prompt) {
+        prompt = 'Build a nest here ' + K('E'); actLabel = 'Build nest'; actHot = night || stats.time >= 17;
+        if (ePressed) buildNest();
       }
     }
-    // Context hints
+    // Jump button meaning + desktop hints
+    jumpLabel = 'Jump';
     if (p.onGround && p.mode === 'walk') {
-      if (p.supKind === 'crown') hint = '[N] Build nest · [Space] grab trunk to climb down';
-      else if (findGrabTree()) hint = '[Space] Grab the trunk and climb';
-      else if (p.supKind === 'branch' && heightAboveGround(p.pos) >= NEST_MIN_HEIGHT && !nestAt(p.pos.x, p.pos.y, p.pos.z, 2.2)) hint = '[N] Build a nest here';
+      if (p.supKind === 'crown') { jumpLabel = 'Climb down'; hint = '[Space] climb back down the trunk'; }
+      else if (p.supKind !== 'branch' && findGrabTree()) { jumpLabel = 'Climb'; hint = 'Walk into the trunk to climb it'; }
     }
     if (nPressed) buildNest();
     setPromptText(prompt, hint);
   }
   const promptEl = $('prompt'), hintEl = $('hint'), crossEl = $('crosshair');
-  let lastPrompt = null, lastHint = null, lastAimed = null;
-  const kbdify = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/\[([A-Za-z]+)\]/g, '<kbd>$1</kbd>');
+  let lastPrompt = null, lastHint = null, lastAimed = null, lastHasBtn = null;
   function setPromptText(pr, hi) {
     if (pr !== lastPrompt) { promptEl.innerHTML = kbdify(pr); lastPrompt = pr; }
+    const hb = isTouch && !!actLabel; if (hb !== lastHasBtn) { promptEl.classList.toggle('has-btn', hb); lastHasBtn = hb; }
     if (hi !== lastHint) { hintEl.innerHTML = kbdify(hi); lastHint = hi; }
     if (aimed !== lastAimed) { crossEl.classList.toggle('target', aimed); lastAimed = aimed; }
   }
@@ -2400,7 +2736,7 @@ function initGame(THREE) {
   function updateHUD(dt) {
     setBar('health', stats.health); setBar('hunger', stats.hunger); setBar('water', stats.water); setBar('energy', stats.energy); setBar('social', stats.social);
     const hrs = Math.floor(stats.time), mins = Math.floor((stats.time % 1) * 60), night = isNight();
-    const ct = 'Day ' + dayNumber() + ' · ' + String(hrs).padStart(2, '0') + ':' + String(mins).padStart(2, '0') + (night ? ' (Night: leopards hunt!)' : stats.time >= 18 ? ' (Dusk)' : ' (Day)');
+    const ct = 'Day ' + dayNumber() + ' · ' + String(hrs).padStart(2, '0') + ':' + String(mins).padStart(2, '0') + (isTouch ? (night ? ' · Night' : stats.time >= 18 ? ' · Dusk' : '') : night ? ' (Night: leopards hunt!)' : stats.time >= 18 ? ' (Dusk)' : ' (Day)');
     if (ct !== lastClock) { clockEl.textContent = ct; lastClock = ct; }
     if (night !== lastIcon) { clockSun.setAttribute('opacity', night ? '0' : '1'); clockMoon.setAttribute('opacity', night ? '1' : '0'); lastIcon = night; }
     const tier = socialTier(), tt = tier === 'outcast' ? 'Outcast' : tier === 'favored' ? 'Favored' : 'Member';
@@ -2427,11 +2763,15 @@ function initGame(THREE) {
     low: { label: 'Low', pr: 0.75, post: false, shadows: false, shadowSize: 1024, msaa: 0, rays: 0, grass: 0.22, fern: 0.4, motes: 0.4, leaves: 14 },
     medium: { label: 'Medium', pr: 1.0, post: true, shadows: true, shadowSize: 1024, msaa: 2, rays: 24, grass: 0.65, fern: 0.8, motes: 0.7, leaves: 30 },
     high: { label: 'High', pr: 1.5, post: true, shadows: true, shadowSize: 2048, msaa: 4, rays: 40, grass: 1, fern: 1, motes: 1, leaves: 46 },
+    // Phone-tuned: bloom + grading but no god rays/MSAA, 1024 shadows, lighter foliage, pixel ratio capped at 1.5
+    mobile: { label: 'Phone', pr: 1.0, prCap: 1.5, post: true, shadows: true, shadowSize: 1024, msaa: 0, rays: 0, grass: 0.4, fern: 0.55, motes: 0.5, leaves: 16, fill: false },
   };
+  const AUTO_ORDER = IS_MOBILE || isTouch ? ['low', 'mobile', 'medium'] : ['low', 'medium', 'high'];
+  const AUTO_START = IS_MOBILE || isTouch ? 'mobile' : 'medium';
   let Q_CUR = QUALITY.medium, qName = '', autoQ = { t: 0, frames: 0, settle: 2.5, lowered: {} };
   function applyQuality(name) {
     const q = QUALITY[name]; if (!q) return; const prevShadows = Q_CUR.shadows, first = !qName; qName = name; Q_CUR = q;
-    renderer.setPixelRatio(clamp((window.devicePixelRatio || 1) * q.pr, 0.5, 2));
+    renderer.setPixelRatio(clamp((window.devicePixelRatio || 1) * q.pr, 0.5, q.prCap || (IS_MOBILE ? (name === 'low' ? 1 : 1.5) : 2)));
     renderer.setSize(window.innerWidth, window.innerHeight);
     if (sun.shadow.mapSize.x !== q.shadowSize) { sun.shadow.mapSize.set(q.shadowSize, q.shadowSize); if (sun.shadow.map) { sun.shadow.map.dispose(); sun.shadow.map = null; } }
     sun.castShadow = q.shadows; renderer.shadowMap.enabled = q.shadows;
@@ -2440,7 +2780,7 @@ function initGame(THREE) {
     buildTargets();
     for (const m of meshes.grass) m.count = Math.floor(m.userData.full * q.grass);
     for (const m of meshes.fern) m.count = Math.floor(m.userData.full * q.fern);
-    for (const m of meshes.leafFill) m.visible = q.post;
+    for (const m of meshes.leafFill) m.visible = q.fill !== undefined ? q.fill : q.post;
     for (const m of meshes.leafFill) m.castShadow = q.shadowSize > 1024;
     leafActive = q.leaves;
     const pr = renderer.getPixelRatio(); motes.material.uniforms.pr.value = pr; fireflies.material.uniforms.pr.value = pr;
@@ -2458,8 +2798,9 @@ function initGame(THREE) {
     autoQ.t += dt; autoQ.frames++;
     if (autoQ.t < 3) return;
     const f = autoQ.frames / autoQ.t; autoQ.t = 0; autoQ.frames = 0;
-    if (f < 42 && qName !== 'low') { autoQ.lowered[qName] = true; applyQuality(qName === 'high' ? 'medium' : 'low'); autoQ.settle = 2; }
-    else if (f > 58 && qName !== 'high') { const up = qName === 'low' ? 'medium' : 'high'; if (!autoQ.lowered[up]) { applyQuality(up); autoQ.settle = 2; } }
+    const i = Math.max(0, AUTO_ORDER.indexOf(qName));
+    if (f < (isTouch ? 30 : 42) && i > 0) { autoQ.lowered[qName] = true; applyQuality(AUTO_ORDER[i - 1]); autoQ.settle = 2; }
+    else if (f > 57 && i < AUTO_ORDER.length - 1) { const up = AUTO_ORDER[i + 1]; if (!autoQ.lowered[up]) { applyQuality(up); autoQ.settle = 2; } }
   }
 
   // ---------------- Main loop ----------------
@@ -2469,7 +2810,7 @@ function initGame(THREE) {
     if (state !== 'playing') return;
     updateFruit(dt); updateChimps(dt); updateLeopard(dt);
     if (state !== 'playing') return;
-    updateInteraction(dt); updateCamera(dt); updateEnvironment(dt); updateAmbient(dt); updateHUD(dt);
+    updateInteraction(dt); updateTouchButtons(); updateTutorial(dt); updateRotateHint(dt); updateCamera(dt); updateEnvironment(dt); updateAmbient(dt); updateHUD(dt);
     for (const k in pressed) pressed[k] = false;
   }
   let titleT = 0;
@@ -2503,17 +2844,23 @@ function initGame(THREE) {
     if (DEBUG && frameN % 10 === 0) dbgEl.textContent = 'DEBUG  fps ' + fps + '  quality ' + qName + '  calls ' + renderer.info.render.calls + '  pos ' + player.pos.x.toFixed(1) + ',' + player.pos.y.toFixed(1) + ',' + player.pos.z.toFixed(1) + '  mode ' + player.mode + '/' + player.supKind + '  leopard ' + L.state + (L.active ? ' d=' + Math.round(Math.hypot(L.pos.x - player.pos.x, L.pos.z - player.pos.z)) : '') + '\n] = +1 hour   window.canopy = test API';
     if (state !== 'playing') frameN++;
   }
-  window.addEventListener('resize', () => {
+  function onResize() {
     camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight); buildTargets();
-  });
+  }
+  window.addEventListener('resize', onResize);
+  window.addEventListener('orientationchange', () => setTimeout(onResize, 350));   // iOS reports the new size late
+  // WebGL context loss (phones do this under memory pressure): pause, then rebuild targets when restored
+  let ctxLost = false;
+  renderer.domElement.addEventListener('webglcontextlost', (e) => { e.preventDefault(); ctxLost = true; if (state === 'playing') pause(); $('pause-msg').textContent = 'Graphics were interrupted by the device. Restoring… (reload if this stays)'; }, false);
+  renderer.domElement.addEventListener('webglcontextrestored', () => { ctxLost = false; buildTargets(); applyQuality(qName); $('pause-msg').textContent = 'Graphics restored. Tap Resume.'; }, false);
 
   // ---------------- Debug / test hook (only with ?debug=1) ----------------
   if (DEBUG) {
     dbgEl.classList.remove('hidden');
     window.canopy = {
       get state() { return state; }, keys, perf, get calls() { return renderer.info.render.calls; }, get tris() { return renderer.info.render.triangles; }, stats, player, leopard: L, trees, chimps, fruits, nests: playerNests,
-      get quality() { return qName; }, get fps() { return fps; }, three: THREE.REVISION,
+      get quality() { return qName; }, get fps() { return fps; }, three: THREE.REVISION, get isTouch() { return isTouch; }, stick, get actLabel() { return actLabel; }, get jumpLabel() { return jumpLabel; }, get tip() { return tipEl.textContent; }, get hdr() { return post.hdr; },
       setQuality(q) { if (QUALITY[q]) { settings.quality = q; qualitySel.value = q; applyQuality(q); } else if (q === 'auto') { settings.quality = 'auto'; qualitySel.value = 'auto'; } },
       setTime(h) { stats.time = ((h % 24) + 24) % 24; prevNight = isNight(); updateEnvironment(0); },
       advance(hours) { advanceTime(hours); },
@@ -2529,12 +2876,15 @@ function initGame(THREE) {
   }
 
   // ---------------- Init ----------------
-  applyQuality(forcedQuality || (settings.quality === 'auto' ? 'medium' : settings.quality));
+  await loadStage('Compiling shaders…', 90);
+  applyQuality(forcedQuality || (settings.quality === 'auto' ? AUTO_START : settings.quality));
   resetGame();
   refreshBest();
   updateEnvironment(0);
-  const playBtn = $('play-btn'); playBtn.disabled = false; playBtn.textContent = DEBUG ? 'Click to Play (debug: no mouse lock)' : 'Click Anywhere to Play';
+  const playBtn = $('play-btn'); playBtn.disabled = false; setTouchMode(isTouch);
+  if (DEBUG && !isTouch) playBtn.textContent = 'Click to Play (debug: no mouse lock)';
   frame();
+  await loadStage('Ready', 100); $('load').style.display = 'none';
 }
 </script>
 </body>
